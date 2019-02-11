@@ -9,6 +9,11 @@ from coinplus_solo_redeem.common import compute_privatekey_sec256k1, compute_pub
     verify_address, is_b58_string
 from coinplus_solo_redeem.pro import secret1_reconstruct_base58, secret2_reconstruct_base58
 
+try:
+    import _scrypt # pylint: disable=unused-import
+except ImportError:
+    pass
+
 def resource_path(relative):
     """pyinstaller function for windows"""
     return os.path.join(
