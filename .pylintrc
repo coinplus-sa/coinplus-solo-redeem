@@ -1,0 +1,14 @@
+[MASTER]
+extension-pkg-whitelist=PyQt5
+
+[FORMAT]
+max-line-length=180
+
+[BASIC]
+variable-rgx=[a-z_][a-z0-9_]*
+attr-rgx=[a-z_][a-z0-9_]*
+
+[DESIGN]
+max-attributes=25
+max-statements=80
+min-public-methods=0

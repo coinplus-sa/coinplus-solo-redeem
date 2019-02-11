@@ -1,0 +1,87 @@
+# Pip's cache doesn't store the python packages
+# https://pip.pypa.io/en/stable/reference/pip_install/#caching
+#
+# If you want to also cache the installed packages, you have to install
+# them in a virtualenv and cache it as well.
+
+stages:
+    - test
+    - build
+
+before_script:
+  - python -V               # Print out python version for debugging
+#  - pip install pyinstaller
+
+test-linux:
+  tags: [linux64]
+  stage: test
+  script:
+  - python3 -m venv venv
+  - source venv/bin/activate
+  - pip install wheel
+  - pip install cryptography
+  - pip install pyinstaller
+  - pip install pylint
+  - pylint coinplus_solo_redeem
+
+
+build-windows86:
+  tags: [win7x86]
+  stage: build
+  script:
+  - pip install virtualenv
+  - virtualenv venv
+  - call venv\Scripts\activate.bat
+  - python -c "import sys;print(sys.executable)"
+  - set LIB=C:\Program Files (x86)\OpenSSL-Win32\lib;%LIB%
+  - set INCLUDE=C:\Program Files (x86)\OpenSSL-Win32\include;%INCLUDE%
+  - pip install cryptography
+  - pip install pyinstaller
+  - pip install -e python/
+  # an alternative approach is to install and run:
+  - pyinstaller -F -w -y python/coinplus_solo_redeem/gui.py
+  # run the command here
+  artifacts:
+    paths:
+    - dist/*.exe
+  only:
+    - production
+
+
+build-macos:
+  tags: [macos]
+  stage: build
+  script:
+  - python3 -m venv venv
+  - source venv/bin/activate
+  - pip install cryptography
+  - pip install pyinstaller
+  - pip install -e python/
+  # an alternative approach is to install and run:
+  - pyinstaller -F -w -y python/coinplus_solo_redeem/gui.py
+  # run the command here
+  artifacts:
+    paths:
+    - dist/*
+  only:
+    - production
+
+build-linux64:
+  tags: [linux64]
+  stage: build
+  script:
+  - python3 -m venv venv
+  - source venv/bin/activate
+  - pip install wheel
+  - pip install cryptography
+  - pip install pyinstaller
+  - pip install -e python/
+  # an alternative approach is to install and run:
+  - pyinstaller -F -w -y python/coinplus_solo_redeem/gui.py
+  # run the command here
+  artifacts:
+    paths:
+    - dist/*
+  only:
+    - production
+
