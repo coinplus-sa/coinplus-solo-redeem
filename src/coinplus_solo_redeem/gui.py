@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QGroupBox, QPushButton, QGrid
                             QLineEdit, QRadioButton, QHBoxLayout, QVBoxLayout, QMainWindow, QScrollArea, QMessageBox
 
 from coinplus_solo_redeem.common import compute_privatekey_sec256k1, compute_public_key_sec256k1, wif_export_bitcoin,\
-    address_from_publickey_bitcoin, wif_export_litecoin, address_from_publickey_litecoin, address_from_publickey_etherum, address_from_publickey_ripple,\
+    address_from_publickey_bitcoin, wif_export_litecoin, address_from_publickey_litecoin, address_from_publickey_ethereum, address_from_publickey_ripple,\
     verify_address, is_b58_string
 from coinplus_solo_redeem.pro import secret1_reconstruct_base58, secret2_reconstruct_base58
 
@@ -166,7 +166,7 @@ class SoloChoice(QWidget):
         if self.currency == "ETH":
             privatekey_wif = privkey256.hex()
             public_key_un = compute_public_key_sec256k1(privkey256, compressed=False)
-            address = address_from_publickey_etherum(public_key_un)
+            address = address_from_publickey_ethereum(public_key_un)
         if self.currency == "XRP":
             privatekey_wif = privkey256.hex()
             address = address_from_publickey_ripple(public_key)

@@ -169,7 +169,7 @@ def address_from_publickey_bitcoin(public_key):
     """generate a bitcoin address from a public key"""
     return encode_base58check(PUBKEY_ADDRESS_MAIN.to_bytes(1, "big") + hash_160(public_key), preserve_leading_zeros=True)
 
-def address_from_publickey_etherum(public_key):
+def address_from_publickey_ethereum(public_key):
     """generate a ethereum address from a public key"""
     address = sha3.keccak_256(public_key).hexdigest()[24:]
     return checksum_encode(address)
