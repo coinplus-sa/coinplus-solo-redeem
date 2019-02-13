@@ -68,8 +68,9 @@ build-macos:
   tags: [macos]
   stage: build
   script:
-  - python3 -m venv venv
+  - $HOME/.pyenv/versions/3.6.0/bin/python3 -m venv venv
   - source venv/bin/activate
+  - pip install --upgrade pip
   - pip install cryptography
   - pip install pyinstaller
   - pip install -e src/
