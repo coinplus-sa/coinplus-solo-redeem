@@ -3,7 +3,18 @@ import math
 import hashlib
 import ecdsa
 import sha3
-import pyscrypt as scrypt
+
+try:
+    from hashlib import scrypt
+    def scrypt_func(data):
+        """Scrypt function simplification"""
+        return scrypt(data.encode("ascii"), salt=b"", n=16384, r=8, p=8, dklen=32)
+
+except ImportError:
+    import pyscrypt as scrypt
+    def scrypt_func(data):
+        """Scrypt function simplification"""
+        scrypt.hash(data.encode("ascii"), salt=b"", N=16384, r=8, p=8, dkLen=32)
 
 BITCOIN_B58CHARS = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 RIPPLE_B58CHARS = 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz'
@@ -126,8 +137,8 @@ def compute_privatekey_sec256k1(secret1_b58, secret2_b58):
         and compute the ECC private key by adding them"""
     assert all(map(lambda c: c in BITCOIN_B58CHARS, secret1_b58))
     assert all(map(lambda c: c in BITCOIN_B58CHARS, secret2_b58))
-    hashed_secret1 = scrypt.hash(secret1_b58, "", N=16384, r=8, p=8, dkLen=32)
-    hashed_secret2 = scrypt.hash(secret2_b58, "", N=16384, r=8, p=8, dkLen=32)
+    hashed_secret1 = scrypt_func(secret1_b58)
+    hashed_secret2 = scrypt_func(secret2_b58)
     n_1 = int.from_bytes(hashed_secret1, 'big')
     n_2 = int.from_bytes(hashed_secret2, 'big')
     n_0 = (n_1 + n_2) % N
