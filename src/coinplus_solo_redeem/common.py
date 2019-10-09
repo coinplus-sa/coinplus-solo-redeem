@@ -31,6 +31,11 @@ class Base58DecodingError(Exception):
 class ChecksumError(Exception):
     """checksum error"""
 
+def verify_solo_check(string, size=1):
+    """verify if the string has a valid checksum"""
+    raw = string[:-size]
+    check = int.from_bytes(doublesha256(raw.encode("ascii")), "little") % 58**size
+    return base58encode(check, length=1) == string[-size:]
 
 #### BASE 58
 def count_leading_base58_zeros(b58str, ripple):
@@ -92,7 +97,13 @@ def decode_base58check(data, preserve_leading_zeros=True, ripple=False):
     integer = base58decode(data, ripple=ripple)
     if integer == 0:
         raise ChecksumError("Empty")
+    if integer == 1:
+        print(integer)
+        raise ChecksumError("Empty")
     raw += integer.to_bytes(math.ceil(math.log(integer, 256)), "big")
+    if len(raw) < 5:
+        print(raw)
+        raise ChecksumError("Empty")
     content, check = raw[:-4], raw[-4:]
     digest2 = doublesha256(content)
     if digest2[:4] != check:

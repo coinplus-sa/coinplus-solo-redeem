@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QGroupBox, QPushButton, QGrid
 
 from coinplus_solo_redeem.common import compute_privatekey_sec256k1, compute_public_key_sec256k1, wif_export_bitcoin,\
     address_from_publickey_bitcoin, wif_export_litecoin, address_from_publickey_litecoin, address_from_publickey_ethereum, address_from_publickey_ripple,\
-    verify_address, is_b58_string
+    verify_address, is_b58_string, verify_solo_check
 from coinplus_solo_redeem.pro import secret1_reconstruct_base58, secret2_reconstruct_base58
 
 try:
@@ -23,6 +23,19 @@ def resource_path(relative):
         ),
         relative
     )
+
+def wrong_secret(secret_number=1, solopro=False):
+    """Wrong secret pop up"""
+    pro_text = ""
+    if solopro:
+        pro_text = "of the card %d " % solopro
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Critical)
+    msg.setText("Error, the secret %s checksum %sis not valid, "%(secret_number, pro_text))
+    msg.setInformativeText("please check that you entered the secret %d %scorrectly!"%(secret_number, pro_text))
+    msg.setWindowTitle("Error wrong secret")
+    msg.setStandardButtons(QMessageBox.Ok)
+    msg.exec_()
 
 class SoloApp(QMainWindow):
     """main solo app"""
@@ -152,13 +165,28 @@ class SoloChoice(QWidget):
         state = True
         if self.solo.validate() is False:
             state = False
+            print(state)
         if verify_address(self.address.text(), self.currency) is False:
             state = False
+            print(state)
         self.button_retrieve.setEnabled(state)
+
 
     def button_clicked_retrievepk(self):
         """button action function to recompute the private key"""
         secret1_b58, secret2_b58 = self.solo.get_secrets()
+
+        if len(secret1_b58) == 30:
+            if verify_solo_check(secret1_b58) is False:
+                wrong_secret(1, False)
+                return
+            secret1_b58 = secret1_b58[:29]
+
+        if len(secret2_b58) == 30:
+            if verify_solo_check(secret2_b58) is False:
+                wrong_secret(2, False)
+                return
+            secret2_b58 = secret2_b58[:29]
 
         privkey256 = compute_privatekey_sec256k1(secret1_b58, secret2_b58)
         public_key = compute_public_key_sec256k1(privkey256)
@@ -232,9 +260,11 @@ class SoloProWidget(QWidget):
         """check if the parameters are valid"""
         for secret in self.secrets_recover_list:
             sec, _ = secret.get_secret(1)
+#            if not is_b58_string(sec, size=28) and not is_b58_string(sec, size=30):
             if not is_b58_string(sec, size=28):
                 return False
             sec, _ = secret.get_secret(2)
+#            if not is_b58_string(sec, size=14) and not is_b58_string(sec, size=30):
             if not is_b58_string(sec, size=14):
                 return False
         return True
@@ -245,8 +275,14 @@ class SoloProWidget(QWidget):
         shares2 = []
         for secret in self.secrets_recover_list:
             sec, numi = secret.get_secret(1)
+            if len(sec) == 30 and verify_solo_check(sec) is False:
+                wrong_secret(1, numi)
+                return None, None
             shares1.append((int(numi), sec))
             sec, numi = secret.get_secret(2)
+            if len(sec) == 30 and verify_solo_check(sec) is False:
+                wrong_secret(2, numi)
+                return None, None
             shares2.append((int(numi), sec))
         s1 = secret1_reconstruct_base58(shares1)
         s2 = secret2_reconstruct_base58(shares2)
@@ -282,8 +318,8 @@ class SoloProSecret(QGroupBox):
         self.pro_num = InputLabel("Solo Pro number (#):")
         self.secret1 = InputLabel("Secret 1:")
         self.secret2 = InputLabel("Secret 2:")
-        self.secret1.setMaxLength(28)
-        self.secret2.setMaxLength(14)
+        self.secret1.setMaxLength(30)
+        self.secret2.setMaxLength(30)
         self.pro_num.textChanged.connect(parent.textchanged)
         self.secret1.textChanged.connect(parent.textchanged)
         self.secret2.textChanged.connect(parent.textchanged)
@@ -317,16 +353,16 @@ class SoloWidget(QWidget):
         self.secret2 = InputLabel('Secret 2:')
         self.secret2.textChanged.connect(textchanged)
         self.vbox.addWidget(self.secret2)
-        self.secret1.setMaxLength(28)
-        self.secret2.setMaxLength(14)
+        self.secret1.setMaxLength(30)
+        self.secret2.setMaxLength(30)
 
     def validate(self):
         """return the inputs from the widget"""
         sec = self.secret1.text()
-        if not is_b58_string(sec, size=28):
+        if not is_b58_string(sec, size=28) and not is_b58_string(sec, size=30):
             return False
         sec = self.secret2.text()
-        if not is_b58_string(sec, size=14):
+        if not is_b58_string(sec, size=14) and not is_b58_string(sec, size=30):
             return False
         return True
     def get_secrets(self):
