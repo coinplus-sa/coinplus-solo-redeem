@@ -3,7 +3,7 @@ import os
 from setuptools import setup, find_packages
 
 INSTALL_REQUIRES = ["pysha3==1.0.2",
-                    "ecdsa==0.13.3",
+                    "ecdsa==0.19.2",
                     "pyqt5==5.10.1",
                     ]
 
